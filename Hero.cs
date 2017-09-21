@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace LGoH_DeckSuggester
@@ -49,7 +51,7 @@ namespace LGoH_DeckSuggester
                     return 0;
                 }
 
-                if (EventSkills.Warden != null)
+                if (EventSkills.Warden)
                 {
                     return (long) Math.Round((double) Attack / 2 + (double) Recovery * 1.5 + (double) Health * .3);
                 }
@@ -82,16 +84,16 @@ namespace LGoH_DeckSuggester
     public class EventSkills
     {
         [JsonProperty("Commander")]
-        public long Commander { get; set; }
+        public long? Commander { get; set; }
 
         [JsonProperty("Bounty Hunter")]
-        public long BountyHunter { get; set; }
+        public long? BountyHunter { get; set; }
 
         [JsonProperty("Slayer")]
-        public long Slayer { get; set; }
+        public long? Slayer { get; set; }
 
         [JsonProperty("Warden")]
-        public string Warden { get; set; }
+        public bool Warden { get; set; }
     }
 
     public class LeaderAbility
@@ -105,45 +107,104 @@ namespace LGoH_DeckSuggester
         [JsonProperty("modifiers")]
         public Modifiers Modifiers { get; set; }
 
-        [JsonProperty("target")]
-        public string Target { get; set; }
+        [JsonProperty(PropertyName = "target")]
+        [JsonConverter(typeof(LeaderAbilityTarget))]
+        public string[] Target { get; set; }
     }
 
     public class Modifiers
     {
         [JsonProperty("attack")]
-        public double Attack { get; set; }
+        public double? Attack { get; set; }
 
         [JsonProperty("recovery")]
-        public double Recovery { get; set; }
+        public double? Recovery { get; set; }
 
         [JsonProperty("health")]
-        public double Health { get; set; }
+        public double? Health { get; set; }
     }
 
-
-    public partial class Hero
+    public class LeaderAbilityTarget : JsonConverter
     {
-        public static Hero FromJson(string json)
+        public override bool CanConvert(Type objectType)
         {
-            return JsonConvert.DeserializeObject<Hero>(json, HeroConverter.Settings);
+            // won't be used
+            throw new NotImplementedException();
+        }
+
+        public override object ReadJson(
+            JsonReader reader,
+            Type objectType,
+            object existingValue,
+            JsonSerializer serializer)
+        {
+            switch (reader.TokenType)
+            {
+                case JsonToken.String:
+                    return new[] {serializer.Deserialize<string>(reader)};
+                case JsonToken.StartArray:
+                    return serializer.Deserialize<string[]>(reader);
+                default:
+                    throw new Exception("Cannot convert Target");
+            }
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            // won't be used
+            throw new NotImplementedException();
         }
     }
 
-//    public static class Serialize
-//    {
-//        public static string ToJson(this Hero self)
-//        {
-//            return JsonConvert.SerializeObject(self, HeroConverter.Settings);
-//        }
-//    }
-
     public class HeroConverter
     {
-        public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+        public static JsonSerializerSettings Settings = new JsonSerializerSettings
         {
             MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
             DateParseHandling = DateParseHandling.None
         };
+    }
+
+    public partial class Hero : ICloneable
+    {
+        public Hero FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<Hero>(json, HeroConverter.Settings);
+        }
+
+        public bool CanApplyLeaderStats(string[] leaderTargets)
+        {
+            return leaderTargets.All(MatchesWithStat);
+        }
+
+        private bool MatchesWithStat(string stat)
+        {
+            return stat == Affinity
+                   || stat == Type
+                   || stat == Species
+                   || stat == "Bounty Hunter" && EventSkills.BountyHunter != null
+                   || (Name == "Vulcan Fireshaper" || Name == "Vulcan Flameblood") && Species.Contains(stat);
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public override string ToString()
+        {
+            var heroData = new StringBuilder();
+
+            heroData.Append(Name);
+            heroData.Append(" (");
+            heroData.Append(Attack);
+            heroData.Append("/");
+            heroData.Append(Recovery);
+            heroData.Append("/");
+            heroData.Append(Health);
+            heroData.Append(")");
+
+            return heroData.ToString();
+        }
     }
 }
