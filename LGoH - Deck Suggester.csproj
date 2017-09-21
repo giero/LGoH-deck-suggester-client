@@ -47,6 +47,7 @@
     <Compile Include="Deck.cs" />
     <Compile Include="DeckGenerator.cs" />
     <Compile Include="Hero.cs" />
+    <Compile Include="HeroStat.cs" />
     <Compile Include="LZString.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -54,6 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

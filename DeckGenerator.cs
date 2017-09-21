@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LGoH_DeckSuggester
 {
@@ -17,76 +18,68 @@ namespace LGoH_DeckSuggester
             }
         }
 
-        private List<Hero> _heroes;
-        private string[] _affinities = {"Fire", "Water", "Earth", "Light", "Dark"};
-        private Dictionary<string, BestDeck> _bestDecks;
+        private List<Hero> heroes;
+        private List<BestDeck> bestDecks;
 
-        public DeckGenerator(Team team)
+        public DeckGenerator(List<Hero> heroes)
         {
-            _heroes = team.Heroes;
-            _heroes.Sort(delegate(Hero h1, Hero h2)
-            {
-                if (h1.CoreId == h2.CoreId)
-                {
-                    return (int) (h1.Attack - h2.Attack);
-                }
-
-                return h1.Name.CompareTo(h2.Name);
-            });
-
-            _bestDecks = new Dictionary<string, BestDeck>();
-            foreach (var affinity in _affinities)
-            {
-                _bestDecks[affinity] = new BestDeck();
-            }
+            this.heroes = heroes;
+            bestDecks = new List<BestDeck>(new BestDeck[5]);
         }
 
-        public Dictionary<string, BestDeck> Generate()
+        public List<BestDeck> Generate()
         {
-            var heroesLimit = _heroes.Count - 1;
+            var heroesLimit = heroes.Count - 1;
             for (var h = heroesLimit; h >= 0; h--)
             {
-                if (h < heroesLimit && _heroes[h].CoreId == _heroes[h + 1].CoreId)
+                if (h < heroesLimit && heroes[h].CoreId == heroes[h + 1].CoreId)
                 {
                     continue;
                 }
 
-                var heroes = new List<Hero>(_heroes);
-                var leaderHero = heroes[h];
+                var heroesPool = new List<Hero>(heroes);
+                var leaderHero = heroesPool[h];
 
-                heroes.RemoveAt(h);
+                heroesPool.RemoveAt(h);
+
                 Console.WriteLine("Generetion for: " + leaderHero);
-                Combinations(leaderHero, heroes, 4, 0, new Hero[4]);
+
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+
+                Combinations(leaderHero, heroesPool, 4, 0, new Hero[4]);
+
+                stopWatch.Stop();
+                var ts = stopWatch.Elapsed;
+                var elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+
+                Console.WriteLine("Generated for '" + leaderHero + "' in " + elapsedTime);
             }
 
-            return _bestDecks;
+            return bestDecks;
         }
 
-        private void Combinations(Hero leader, IList<Hero> heroes, int len, int offset, IList<Hero> result)
+        private void Combinations(Hero leader, IList<Hero> heroesPool, int len, int offset, IList<Hero> result)
         {
             if (len == 0)
             {
-                var deckHeroes = new List<Hero> {leader};
-                deckHeroes.AddRange(result);
-
-                var deck = new Deck(deckHeroes);
-                foreach (var affinity in _affinities)
+                var deck = new Deck(new[] {leader, result[0], result[1], result[2], result[3]});
+                for (var i = 0; i < HeroStat.Affinity.List.Length; i++)
                 {
-                    var deckStats = deck.Calculate(affinity);
-
-                    if (deckStats.Power > _bestDecks[affinity].Power)
+                    var deckStats = deck.Calculate(HeroStat.Affinity.List[i]);
+                    if (deckStats.Power > bestDecks[i].Power)
                     {
-                        _bestDecks[affinity] = new BestDeck(deckStats.Power, deck);
+                        bestDecks[i] = new BestDeck(deckStats.Power, deck);
                     }
                 }
 
                 return;
             }
 
-            for (int i = offset, rl = result.Count, hl = heroes.Count; i <= hl - len; i++)
+            for (int i = offset, rl = result.Count, hl = heroesPool.Count; i <= hl - len; i++)
             {
-                result[rl - len] = heroes[i];
-                Combinations(leader, heroes, len - 1, i + 1, result);
+                result[rl - len] = heroesPool[i];
+                Combinations(leader, heroesPool, len - 1, i + 1, result);
             }
         }
 
@@ -95,7 +88,7 @@ namespace LGoH_DeckSuggester
             get
             {
                 long combinations = 1;
-                long heroesCount = _heroes.Count;
+                long heroesCount = heroes.Count;
 
                 // (n-1) * (n-2) * (n-3) * (n-4) / 4!
                 for (long i = 1; i <= 4; ++i)

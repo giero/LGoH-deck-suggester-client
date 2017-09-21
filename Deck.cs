@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace LGoH_DeckSuggester
@@ -16,96 +15,105 @@ namespace LGoH_DeckSuggester
         }
     }
 
+    public struct HeroBaseStats
+    {
+        public long Attack;
+        public long Recovery;
+        public long Health;
+        public string Affinity;
+        public bool IsWarden;
+
+        public HeroBaseStats(Hero hero)
+        {
+            Attack = hero.Attack;
+            Recovery = hero.Recovery;
+            Health = hero.Health;
+            Affinity = hero.Affinity;
+            IsWarden = hero.EventSkills.Warden;
+        }
+    }
+
     public class Deck
     {
-        private List<Hero> _heroes;
-        private string[] _liderTargets;
-        private Modifiers _leaderModifiers;
+        private Hero[] heroes;
+        private string[] liderTargets;
+        private Modifiers leaderModifiers;
 
-        public Deck(List<Hero> heroes)
+        public Deck(Hero[] heroes)
         {
-            _heroes = heroes;
-            _liderTargets = heroes[0].LeaderAbility.Target;
-            _leaderModifiers = heroes[0].LeaderAbility.Modifiers;
+            this.heroes = heroes;
+            liderTargets = heroes[0].LeaderAbility.Target;
+            leaderModifiers = heroes[0].LeaderAbility.Modifiers;
         }
 
         public DeckStats Calculate(string opponentAffinity)
         {
             var deckStats = new DeckStats();
 
-            _heroes.ForEach(delegate(Hero hero)
+            foreach (var hero in heroes)
             {
-                ApplyAffinityBonus(ref hero, opponentAffinity);
-                ApplyLeaderAbilityBonus(ref hero);
+                var deckHeroBaseStats = new HeroBaseStats(hero);
+
+                ApplyAffinityBonus(ref deckHeroBaseStats, opponentAffinity);
+                ApplyLeaderAbilityBonus(hero, ref deckHeroBaseStats);
 //                ApplyEventBonus(ref deckHero);
 
-                deckStats.Attack += hero.Attack;
-                deckStats.Power += hero.Power;
-            });
+                deckStats.Attack += deckHeroBaseStats.Attack;
+                deckStats.Power += HeroStat.Power.Calculate(
+                    deckHeroBaseStats.Attack,
+                    deckHeroBaseStats.Recovery,
+                    deckHeroBaseStats.Health,
+                    deckHeroBaseStats.IsWarden
+                );
+            }
 
             return deckStats;
         }
 
-        private void ApplyAffinityBonus(ref Hero hero, string opponentAffinity)
+        private static void ApplyAffinityBonus(ref HeroBaseStats heroBaseStats, string opponentAffinity)
         {
-            if (Counters(hero.Affinity, opponentAffinity))
+            if (HeroStat.Affinity.Counters(heroBaseStats.Affinity, opponentAffinity))
             {
-                hero.Attack <<= 1;
+                heroBaseStats.Attack <<= 1;
             }
-            else if (Counters(opponentAffinity, hero.Affinity))
+            else if (HeroStat.Affinity.Counters(opponentAffinity, heroBaseStats.Affinity))
             {
-                hero.Attack >>= 1;
-            }
-        }
-
-        private static bool Counters(string current, string opponent)
-        {
-            switch (current)
-            {
-                case "Fire":
-                    return opponent == "Earth";
-                case "Earth":
-                    return opponent == "Water";
-                case "Water":
-                    return opponent == "Fire";
-                case "Light":
-                    return opponent == "Dark";
-                case "Dark":
-                    return opponent == "Light";
-                default:
-                    return false;
+                heroBaseStats.Attack >>= 1;
             }
         }
 
-        private void ApplyLeaderAbilityBonus(ref Hero hero)
+        private void ApplyLeaderAbilityBonus(Hero hero, ref HeroBaseStats deckHeroBaseStats)
         {
-            if (!hero.CanApplyLeaderStats(_liderTargets))
+            if (!hero.CanApplyLeaderStats(liderTargets))
             {
                 return;
             }
 
-            if (_leaderModifiers.Attack != null)
+            if (leaderModifiers.Attack != null)
             {
-                hero.Attack = (long) Math.Round(hero.Attack * (double) _leaderModifiers.Attack);
+                deckHeroBaseStats.Attack =
+                    (long) Math.Round(deckHeroBaseStats.Attack * (double) leaderModifiers.Attack);
             }
 
-            if (_leaderModifiers.Recovery != null)
+            if (leaderModifiers.Recovery != null)
             {
-                hero.Recovery = (long) Math.Round(hero.Recovery * (double) _leaderModifiers.Recovery);
+                deckHeroBaseStats.Recovery =
+                    (long) Math.Round(deckHeroBaseStats.Recovery * (double) leaderModifiers.Recovery);
             }
 
-            if (_leaderModifiers.Health != null)
+            if (leaderModifiers.Health != null)
             {
-                hero.Health = (long) Math.Round(hero.Health * (double) _leaderModifiers.Health);
+                deckHeroBaseStats.Health =
+                    (long) Math.Round(deckHeroBaseStats.Health * (double) leaderModifiers.Health);
             }
         }
 
         public override string ToString()
         {
             var heroesData = new StringBuilder();
-            for (var i = 0; i < _heroes.Count; i++)
+            foreach (Hero hero in heroes)
             {
-                heroesData.Append(_heroes[i]);
+                heroesData.Append(hero);
                 heroesData.Append("\n");
             }
 

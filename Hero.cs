@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -42,23 +41,7 @@ namespace LGoH_DeckSuggester
         [JsonProperty("health")]
         public long Health { get; set; }
 
-        public long Power
-        {
-            get
-            {
-                if (Attack == 0 || Recovery == 0 || Health == 0)
-                {
-                    return 0;
-                }
-
-                if (EventSkills.Warden)
-                {
-                    return (long) Math.Round((double) Attack / 2 + (double) Recovery * 1.5 + (double) Health * .3);
-                }
-
-                return (long) Math.Round((double) Attack / 3 + (double) Recovery + (double) Health / 5);
-            }
-        }
+        public long Power => HeroStat.Power.Calculate(this);
 
 
         [JsonProperty("eventSkills")]
@@ -165,7 +148,7 @@ namespace LGoH_DeckSuggester
         };
     }
 
-    public partial class Hero : ICloneable
+    public partial class Hero
     {
         public Hero FromJson(string json)
         {
@@ -174,21 +157,24 @@ namespace LGoH_DeckSuggester
 
         public bool CanApplyLeaderStats(string[] leaderTargets)
         {
-            return leaderTargets.All(MatchesWithStat);
+            for (var i = 0; i < leaderTargets.Length; i++)
+            {
+                if (!MatchesWithStat(leaderTargets[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool MatchesWithStat(string stat)
         {
-            return stat == Affinity
-                   || stat == Type
-                   || stat == Species
-                   || stat == "Bounty Hunter" && EventSkills.BountyHunter != null
-                   || (Name == "Vulcan Fireshaper" || Name == "Vulcan Flameblood") && Species.Contains(stat);
-        }
-
-        public object Clone()
-        {
-            return MemberwiseClone();
+            return stat.Equals(Affinity)
+                   || stat.Equals(Type)
+                   || stat.Equals(Species)
+                   || stat.Equals("Bounty Hunter") && EventSkills.BountyHunter != null
+                   || (Name.Equals("Vulcan Fireshaper") || Name.Equals("Vulcan Flameblood")) && Species.Contains(stat);
         }
 
         public override string ToString()
