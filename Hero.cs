@@ -1,5 +1,5 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
+using LGoH_DeckSuggester.HeroJsonConverter;
 using Newtonsoft.Json;
 
 namespace LGoH_DeckSuggester
@@ -21,9 +21,20 @@ namespace LGoH_DeckSuggester
         [JsonProperty("awakening")]
         public long Awakening { get; set; }
 
+        private string affinity;
 
         [JsonProperty("affinity")]
-        public string Affinity { get; set; }
+        public string Affinity
+        {
+            get => affinity;
+            set
+            {
+                affinity = value;
+                AffinityType = HeroStat.Affinity.Parse(value);
+            }
+        }
+
+        public HeroStat.Affinity.Type AffinityType { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }
@@ -107,38 +118,6 @@ namespace LGoH_DeckSuggester
         public double? Health { get; set; }
     }
 
-    public class LeaderAbilityTarget : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            // won't be used
-            throw new NotImplementedException();
-        }
-
-        public override object ReadJson(
-            JsonReader reader,
-            Type objectType,
-            object existingValue,
-            JsonSerializer serializer)
-        {
-            switch (reader.TokenType)
-            {
-                case JsonToken.String:
-                    return new[] {serializer.Deserialize<string>(reader)};
-                case JsonToken.StartArray:
-                    return serializer.Deserialize<string[]>(reader);
-                default:
-                    throw new Exception("Cannot convert Target");
-            }
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            // won't be used
-            throw new NotImplementedException();
-        }
-    }
-
     public class HeroConverter
     {
         public static JsonSerializerSettings Settings = new JsonSerializerSettings
@@ -170,7 +149,7 @@ namespace LGoH_DeckSuggester
 
         private bool MatchesWithStat(string stat)
         {
-            return stat.Equals(Affinity)
+            return stat.Equals(affinity)
                    || stat.Equals(Type)
                    || stat.Equals(Species)
                    || stat.Equals("Bounty Hunter") && EventSkills.BountyHunter != null

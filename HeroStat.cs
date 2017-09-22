@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LGoH_DeckSuggester
 {
@@ -34,22 +36,39 @@ namespace LGoH_DeckSuggester
 
         public static class Affinity
         {
-            public static readonly string[] List = {"Fire", "Water", "Earth", "Light", "Dark"};
+            public enum Type
+            {
+                Fire,
+                Water,
+                Earth,
+                Light,
+                Dark
+            }
 
-            public static bool Counters(string current, string opponent)
+            public static readonly string[] Names = Enum.GetNames(typeof(Type));
+            public static readonly Type[] Types = Enum.GetValues(typeof(Type)).Cast<Type>().ToArray();
+
+            public static Type Parse(string affinity)
+            {
+                Type affinityType;
+                Enum.TryParse(affinity, out affinityType);
+                return affinityType;
+            }
+
+            public static bool Counters(Type current, Type opponent)
             {
                 switch (current)
                 {
-                    case "Fire":
-                        return opponent == "Earth";
-                    case "Earth":
-                        return opponent == "Water";
-                    case "Water":
-                        return opponent == "Fire";
-                    case "Light":
-                        return opponent == "Dark";
-                    case "Dark":
-                        return opponent == "Light";
+                    case Type.Fire:
+                        return opponent == Type.Earth;
+                    case Type.Earth:
+                        return opponent == Type.Water;
+                    case Type.Water:
+                        return opponent == Type.Fire;
+                    case Type.Light:
+                        return opponent == Type.Dark;
+                    case Type.Dark:
+                        return opponent == Type.Light;
                     default:
                         return false;
                 }

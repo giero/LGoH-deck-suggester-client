@@ -64,9 +64,9 @@ namespace LGoH_DeckSuggester
             if (len == 0)
             {
                 var deck = new Deck(new[] {leader, result[0], result[1], result[2], result[3]});
-                for (var i = 0; i < HeroStat.Affinity.List.Length; i++)
+                for (var i = 0; i < HeroStat.Affinity.Names.Length; i++)
                 {
-                    var deckStats = deck.Calculate(HeroStat.Affinity.List[i]);
+                    var deckStats = deck.Calculate(HeroStat.Affinity.Types[i]);
                     if (deckStats.Power > bestDecks[i].Power)
                     {
                         bestDecks[i] = new BestDeck(deckStats.Power, deck);

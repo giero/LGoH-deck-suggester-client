@@ -27,7 +27,7 @@ namespace LGoH_DeckSuggester
 
             for (var i = 0; i < bestDecks.Count; i++)
             {
-                Console.WriteLine(HeroStat.Affinity.List[i] + "(" + bestDecks[i].Power + ")");
+                Console.WriteLine(HeroStat.Affinity.Names[i] + "(" + bestDecks[i].Power + ")");
                 Console.WriteLine(bestDecks[i].Deck);
             }
 

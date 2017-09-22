@@ -20,7 +20,7 @@ namespace LGoH_DeckSuggester
         public long Attack;
         public long Recovery;
         public long Health;
-        public string Affinity;
+        public HeroStat.Affinity.Type AffinityType;
         public bool IsWarden;
 
         public HeroBaseStats(Hero hero)
@@ -28,7 +28,7 @@ namespace LGoH_DeckSuggester
             Attack = hero.Attack;
             Recovery = hero.Recovery;
             Health = hero.Health;
-            Affinity = hero.Affinity;
+            AffinityType = hero.AffinityType;
             IsWarden = hero.EventSkills.Warden;
         }
     }
@@ -46,7 +46,7 @@ namespace LGoH_DeckSuggester
             leaderModifiers = heroes[0].LeaderAbility.Modifiers;
         }
 
-        public DeckStats Calculate(string opponentAffinity)
+        public DeckStats Calculate(HeroStat.Affinity.Type opponentAffinity)
         {
             var deckStats = new DeckStats();
 
@@ -70,13 +70,13 @@ namespace LGoH_DeckSuggester
             return deckStats;
         }
 
-        private static void ApplyAffinityBonus(ref HeroBaseStats heroBaseStats, string opponentAffinity)
+        private static void ApplyAffinityBonus(ref HeroBaseStats heroBaseStats, HeroStat.Affinity.Type opponentAffinity)
         {
-            if (HeroStat.Affinity.Counters(heroBaseStats.Affinity, opponentAffinity))
+            if (HeroStat.Affinity.Counters(heroBaseStats.AffinityType, opponentAffinity))
             {
                 heroBaseStats.Attack <<= 1;
             }
-            else if (HeroStat.Affinity.Counters(opponentAffinity, heroBaseStats.Affinity))
+            else if (HeroStat.Affinity.Counters(opponentAffinity, heroBaseStats.AffinityType))
             {
                 heroBaseStats.Attack >>= 1;
             }
