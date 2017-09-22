@@ -48,11 +48,11 @@ namespace LGoH_DeckSuggester
 
         public DeckStats Calculate(HeroStat.Affinity.Type opponentAffinity)
         {
-            var deckStats = new DeckStats();
+            DeckStats deckStats = new DeckStats();
 
-            foreach (var hero in heroes)
+            foreach (Hero hero in heroes)
             {
-                var deckHeroBaseStats = new HeroBaseStats(hero);
+                HeroBaseStats deckHeroBaseStats = new HeroBaseStats(hero);
 
                 ApplyAffinityBonus(ref deckHeroBaseStats, opponentAffinity);
                 ApplyLeaderAbilityBonus(hero, ref deckHeroBaseStats);
@@ -110,7 +110,7 @@ namespace LGoH_DeckSuggester
 
         public override string ToString()
         {
-            var heroesData = new StringBuilder();
+            StringBuilder heroesData = new StringBuilder();
             foreach (Hero hero in heroes)
             {
                 heroesData.Append(hero);

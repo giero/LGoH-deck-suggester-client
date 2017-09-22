@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using LGoH_DeckSuggester.HeroJsonConverter;
 using Newtonsoft.Json;
 
@@ -136,9 +137,9 @@ namespace LGoH_DeckSuggester
 
         public bool CanApplyLeaderStats(string[] leaderTargets)
         {
-            for (var i = 0; i < leaderTargets.Length; i++)
+            foreach (string leaderTarget in leaderTargets)
             {
-                if (!MatchesWithStat(leaderTargets[i]))
+                if (!MatchesWithStat(leaderTarget))
                 {
                     return false;
                 }
@@ -149,16 +150,18 @@ namespace LGoH_DeckSuggester
 
         private bool MatchesWithStat(string stat)
         {
-            return stat.Equals(affinity)
+            return stat.Equals(Affinity)
                    || stat.Equals(Type)
                    || stat.Equals(Species)
+                   // Dhala - the only hero with bonus for Bounty Hunters ... Water Bounty Hunters
                    || stat.Equals("Bounty Hunter") && EventSkills.BountyHunter != null
+                   // Vulcans are God Honored ... so applies God or Honored
                    || (Name.Equals("Vulcan Fireshaper") || Name.Equals("Vulcan Flameblood")) && Species.Contains(stat);
         }
 
         public override string ToString()
         {
-            var heroData = new StringBuilder();
+            StringBuilder heroData = new StringBuilder();
 
             heroData.Append(Name);
             heroData.Append(" (");

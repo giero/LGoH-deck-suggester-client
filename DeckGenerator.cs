@@ -29,29 +29,29 @@ namespace LGoH_DeckSuggester
 
         public List<BestDeck> Generate()
         {
-            var heroesLimit = heroes.Count - 1;
-            for (var h = heroesLimit; h >= 0; h--)
+            int heroesLimit = heroes.Count - 1;
+            for (int h = heroesLimit; h >= 0; h--)
             {
                 if (h < heroesLimit && heroes[h].CoreId == heroes[h + 1].CoreId)
                 {
                     continue;
                 }
 
-                var heroesPool = new List<Hero>(heroes);
-                var leaderHero = heroesPool[h];
+                List<Hero> heroesPool = new List<Hero>(heroes);
+                Hero leaderHero = heroesPool[h];
 
                 heroesPool.RemoveAt(h);
 
                 Console.WriteLine("Generetion for: " + leaderHero);
 
-                var stopWatch = new Stopwatch();
+                Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
 
                 Combinations(leaderHero, heroesPool, 4, 0, new Hero[4]);
 
                 stopWatch.Stop();
-                var ts = stopWatch.Elapsed;
-                var elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+                TimeSpan ts = stopWatch.Elapsed;
+                string elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
 
                 Console.WriteLine("Generated for '" + leaderHero + "' in " + elapsedTime);
             }
@@ -63,10 +63,10 @@ namespace LGoH_DeckSuggester
         {
             if (len == 0)
             {
-                var deck = new Deck(new[] {leader, result[0], result[1], result[2], result[3]});
-                for (var i = 0; i < HeroStat.Affinity.Names.Length; i++)
+                Deck deck = new Deck(new[] {leader, result[0], result[1], result[2], result[3]});
+                for (int i = 0; i < HeroStat.Affinity.Names.Length; i++)
                 {
-                    var deckStats = deck.Calculate(HeroStat.Affinity.Types[i]);
+                    DeckStats deckStats = deck.Calculate(HeroStat.Affinity.Types[i]);
                     if (deckStats.Power > bestDecks[i].Power)
                     {
                         bestDecks[i] = new BestDeck(deckStats.Power, deck);

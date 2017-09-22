@@ -55,23 +55,11 @@ namespace LGoH_DeckSuggester
                 return affinityType;
             }
 
+            private static Type[] counters = {Type.Earth, Type.Water, Type.Fire, Type.Dark, Type.Light};
+
             public static bool Counters(Type current, Type opponent)
             {
-                switch (current)
-                {
-                    case Type.Fire:
-                        return opponent == Type.Earth;
-                    case Type.Earth:
-                        return opponent == Type.Water;
-                    case Type.Water:
-                        return opponent == Type.Fire;
-                    case Type.Light:
-                        return opponent == Type.Dark;
-                    case Type.Dark:
-                        return opponent == Type.Light;
-                    default:
-                        return false;
-                }
+                return counters[(int) current] == opponent;
             }
         }
     }
