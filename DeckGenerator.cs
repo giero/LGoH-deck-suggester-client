@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LGoH_DeckSuggester
 {
@@ -29,14 +31,8 @@ namespace LGoH_DeckSuggester
 
         public List<BestDeck> Generate()
         {
-            int heroesLimit = heroes.Count - 1;
-            for (int h = heroesLimit; h >= 0; h--)
+            Parallel.For(0, heroes.Count, h =>
             {
-                if (h < heroesLimit && heroes[h].CoreId == heroes[h + 1].CoreId)
-                {
-                    continue;
-                }
-
                 List<Hero> heroesPool = new List<Hero>(heroes);
                 Hero leaderHero = heroesPool[h];
 
@@ -54,7 +50,7 @@ namespace LGoH_DeckSuggester
                 string elapsedTime = $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
 
                 Console.WriteLine("Generated for '" + leaderHero + "' in " + elapsedTime);
-            }
+            });
 
             return bestDecks;
         }
