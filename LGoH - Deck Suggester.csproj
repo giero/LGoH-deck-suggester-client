@@ -47,7 +47,6 @@
     <Compile Include="Deck.cs" />
     <Compile Include="DeckGenerator.cs" />
     <Compile Include="Hero.cs" />
-    <Compile Include="HeroJsonConverter\EnumerableStat.cs" />
     <Compile Include="HeroJsonConverter\LeaderAbilityTarget.cs" />
     <Compile Include="HeroStat.cs" />
     <Compile Include="LZString.cs" />
